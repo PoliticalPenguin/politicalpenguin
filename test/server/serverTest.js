@@ -6,7 +6,7 @@ var moment = require('moment');
 var io = require('socket.io-client');
 var socket;
 
-describe('glitch Server Unit Tests', function () {
+describe('glitch Server Integration Tests', function () {
   this.timeout(5000);	//Increased time before which a 'timeout' is assumed, due to the Youtube API occasionally taking over 2 seconds to serve a request.
 
   beforeEach(function (done) {
@@ -46,7 +46,9 @@ describe('glitch Server Unit Tests', function () {
 	});  
 
   it('emits "play" messages to clients, which contain a URL (string), title (string) and play time (integer) for each Youtube video', function (done) {
-  	socket.on('play', function (data) {
+  	app.queueSong('https://www.youtube.com/watch?v=3PEGDGxZdzA');
+
+    socket.on('play', function (data) {
   		expect(data).to.contain.all.keys(['url', 'title', 'time']);
   		expect(typeof data.url).to.equal('string');
   		expect(typeof data.title).to.equal('string');
@@ -54,6 +56,7 @@ describe('glitch Server Unit Tests', function () {
   		socket.disconnect();
   		done();
   	});
+
   });
 
   it('gives clients who connect after a video has started playing a non-zero play time which is equal to the server play time', function (done) {
@@ -75,7 +78,8 @@ describe('glitch Server Unit Tests', function () {
   });
 
   it('automatically emits a new "play" message to clients after the current song has been completed', function (done) {
-  	var numberOfSongsPlayed = 0;
+  	app.queueSong('https://www.youtube.com/watch?v=3PEGDGxZdzA');
+    var numberOfSongsPlayed = 0;
   	socket.on('play', function (data) {
   		numberOfSongsPlayed++;
   		if(numberOfSongsPlayed > 1) {
